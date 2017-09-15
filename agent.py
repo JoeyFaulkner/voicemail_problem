@@ -14,29 +14,35 @@ class agent:
         self.current_intention = np.random.choice(self.intent_space)
         self.turns = []
 
-    def interact(self, intent):
-        assert intent in self.action_space
+    def interact(self, action):
+        assert action in self.action_space
+        self.turns.append(action)
         if len(self.turns) > self.max_convo_length:
-            return {'action': 'EOC', 'reward': -1}
-        if intent == 'save':
+            self.start_new_conversation()
+            return {'intent': 'EOC', 'reward': -1}
+        if action == 'save':
             if self.current_intention == 'save':
-                return {'action': 'EOC', 'reward': 10}
+                self.start_new_conversation()
+                return {'intent': 'EOC', 'reward': 10}
 
             elif self.current_intention == 'delete':
-                return {'action': 'EOC', 'reward': -100}
+                self.start_new_conversation()
+                return {'intent': 'EOC', 'reward': -100}
 
-        elif intent == 'delete':
+        elif action == 'delete':
             if self.current_intention == 'delete':
-                return {'action': 'EOC', 'reward': 10}
+                self.start_new_conversation()
+                return {'intent': 'EOC', 'reward': 10}
 
             elif self.current_intention == 'save':
-                return {'action': 'EOC', 'reward': -100}
+                self.start_new_conversation()
+                return {'intent': 'EOC', 'reward': -100}
 
-        elif intent == 'ask':
+        elif action == 'ask':
             seed = np.random.rand()
             if seed < self.error_rate:
                 wrong = [intent for intent in self.intent_space if intent != self.current_intention][0]
-                return {'action': wrong, 'reward': -1}
+                return {'intent': wrong, 'reward': -1}
             else:
                 return {'action': self.current_intention, 'reward': -1}
 
@@ -45,5 +51,6 @@ if __name__ == '__main__':
     while True:
         out = ag.interact(np.random.choice(ag.action_space))
         print out['reward']
-        if out['action'] == 'EOC':
+        if out['intent'] == 'EOC':
             print out['reward']
+
